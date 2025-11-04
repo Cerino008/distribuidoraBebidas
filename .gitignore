@@ -1,7 +1,14 @@
-# Evita subir credenciales o configuraciones sensibles
+# 🧩 Dependencias
+node_modules/
+
+# 🔐 Archivos sensibles
+.env
 backend/credentials.json
 
-# Archivos temporales y dependencias
-node_modules/
-.env
+# 🍎 Archivos del sistema (macOS)
 .DS_Store
+
+# 🧹 Archivos temporales de logs o caché (opcional)
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
