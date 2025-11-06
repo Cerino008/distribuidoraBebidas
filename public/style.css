@@ -1,22 +1,23 @@
+/* ------------------ GLOBAL ------------------ */
 body {
     background-color: #222 !important;
     color: #F5F5F5;
     padding-top: 120px;
 }
 
-/* NAVBAR */
+/* ------------------ BARRA DE NAVEGACIÓN ------------------ */
 .navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     color: white;
     padding: 10px 20px;
-    position: fixed;       
-    top: 0;               
+    position: fixed;
+    top: 0;
     left: 0;
     right: 0;
-    z-index: 1000;       
-    background: #1d1c1c;      
+    z-index: 1000;
+    background: #1d1c1c;
 }
 
 .navbar img {
@@ -31,21 +32,21 @@ body {
 }
 
 .nav-links li a {
-  color: white;
-  text-decoration: none;
-  font-size: 18px;
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
 }
 
 .menu-toggle {
-  display: none;
-  font-size: 28px;
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
+    display: none;
+    font-size: 28px;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
 }
 
-/* INICIO */
+/* ------------------ INICIO ------------------ */
 .inicio {
     background-color: #eeeeee;
     display: flex;
@@ -90,25 +91,24 @@ body {
     margin-left: 40px;
 }
 
-/* DATOS */
-
-.datos{
+/* ------------------ DATOS ------------------ */
+.datos {
     text-align: center;
     margin-top: 25px;
     margin-bottom: 25px;
 }
 
-.datos h2{
+.datos h2 {
     font-family: "Charm", cursive;
     font-weight: 700;
     display: inline-block;
     padding: 10px;
     background-color: #FFC107;
     margin: 12px;
-    margin-top: 10px;
     border-radius: 5px;
 }
 
+/* ------------------ CONTACTO ------------------ */
 .contacto {
     color: #222;
     background-color: #eeeeee;
@@ -119,18 +119,21 @@ body {
     margin: 20px;
     border-radius: 10px;
 }
+
 .contacto h1 {
     font-family: "Open Sans", sans-serif;
 }
-.contacto li{
+
+.contacto li {
     padding: 8px;
 }
 
-.contacto a{
+.contacto a {
     text-decoration-line: none;
     color: #000000;
 }
 
+/* ------------------ MAPA ------------------ */
 .mapa {
     display: flex;
     justify-content: center;
@@ -138,6 +141,7 @@ body {
     width: 100%;
 }
 
+/* ------------------ PIE DE PAGINA ------------------ */
 footer {
     min-height: 250px;
     background-color: #151414;
@@ -147,21 +151,15 @@ footer {
     padding: 60px;
 }
 
-
 .inf img {
     display: flex;
-    flex-direction: column;
     height: 35px;
     padding: 5px;
 }
 
-
-
-/* RESPONSIVE */
+/* ------------------ ADAPTABLE PARA CELULAR ------------------ */
 @media (max-width: 768px) {
     body {
-        background-color: #222 !important;
-         color: #F5F5F5;
         padding-top: 0px;
     }
 
@@ -180,55 +178,42 @@ footer {
         background-color: #222;
         gap: 20px;
         max-height: 0;
-        padding: 5px;         
-        overflow: hidden;     
-        visibility: hidden;   
-        transition: max-height 0.4s ease-out, visibility 0s linear 0.4s; 
+        padding: 5px;
+        overflow: hidden;
+        visibility: hidden;
+        transition: max-height 0.4s ease-out, visibility 0s linear 0.4s;
     }
 
-    .navbar img{
+    .navbar img {
         display: none;
     }
 
     .nav-links.active {
-        max-height: 250px;    
-        visibility: visible;  
+        max-height: 250px;
+        visibility: visible;
         transition: max-height 0.4s ease-in;
     }
 
-    .nav-links li a {
-        font-size: 18px;
+    .inicio {
+        flex-direction: column-reverse;
+        text-align: center;
+        padding-bottom: 7px;
     }
 
-    .inicio {
-        display: flex;
-        flex-direction: column-reverse;
-        align-items: center;
-        text-align: center;
-    }
     .informacion {
         align-items: center;
         text-align: center;
-        margin-bottom: 10px;
     }
 
     .informacion h2 {
-        font-family: "Archivo Black", sans-serif;
         font-size: 38px;
-        color: rgb(55, 55, 55);
     }
 
     .informacion h3 {
-        font-family: "Montserrat", sans-serif;
         font-size: 15px;
-        color: rgb(55, 55, 55);
     }
 
     .informacion a {
-        text-decoration: none;
-        color: black;
-        padding: 5px;
-        border-radius: 2px;
         font-size: 12px;
     }
 
@@ -237,60 +222,36 @@ footer {
         margin: 0;
         margin-top: 10px;
     }
-    .datos{
-        text-align: center;
-    }
 
-    .datos h2{
+    .datos h2 {
         display: flex;
         flex-direction: column;
         padding: 8px;
-        background-color: #FFC107;
         margin: 5px;
         border-radius: 7px;
     }
 
-    .datos img{
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
     footer {
-    min-height: 250px;
-    background-color: #151414;
-    display: flex;
-    flex-direction: column;
-    align-items: start;
-    padding: 60px;
-}
+        flex-direction: column;
+        padding: 60px;
+    }
 }
 
-
-
-
-@media (min-width: 768px) and (max-width: 1150px) {
-    .informacion{
+/* ------------------ ADAPTABLE PARA TABLET ------------------ */
+@media (min-width: 769px) and (max-width: 1150px) {
+    .informacion {
         margin-right: 60px;
     }
 
     .informacion h2 {
-        font-family: "Archivo Black", sans-serif;
         font-size: 40px;
-        color: rgb(55, 55, 55);
     }
 
     .informacion h3 {
-        font-family: "Montserrat", sans-serif;
         font-size: 16px;
-        color: rgb(55, 55, 55);
     }
 
     .informacion a {
-        text-decoration: none;
-        color: black;
-        padding: 5px;
-        border-radius: 2px;
         font-size: 12px;
     }
     
@@ -298,3 +259,7 @@ footer {
         margin-left: 10px;
     }
 }
+
+   
+
+
