@@ -1,80 +1,69 @@
 <!DOCTYPE html>
 <html lang="es">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta http-equiv="Content-Security-Policy" 
-        content="
-        default-src 'self'; 
-        connect-src 'self' http://localhost:3000; 
-        script-src 'self' https://cdn.jsdelivr.net; 
-        style-src 'self'; 
-        img-src 'self' data:;
-        ">
-
-        <title>Pedido - Distribuidora</title>
-        <link rel="stylesheet" href="pedidos.css">
-        <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-        <script src="pedidos.js" defer></script>
-    </head>
-
-    <body>
-        <div class="container">
-            <div class="card">
-                <h1>Generar Pedido</h1>
-                <p class="small">
-                    Completá los datos del cliente y seleccioná los productos del catálogo.
-                </p>
-
-                <form id="orderForm" onsubmit="return false;">
-                    <div class="fields">
-                        <label>
-                            Nombre del cliente
-                            <input id="customerName" placeholder="Ej: Juan Pérez" required />
-                        </label>
-
-                        <label>
-                            Teléfono
-                            <input id="customerPhone" placeholder="Ej: +54 9 11 1234 5678" />
-                        </label>
-
-                        <label>
-                            Dirección
-                            <input id="address" placeholder="Calle, número, ciudad" />
-                        </label>
-
-                        <!-- Selector de productos -->
-                        <div id="productSelector">
-                            <label>Agregar productos</label>
-                            <div class="add-product-row">
-                                <select id="productSelect"></select>
-                                <input type="number" id="quantityInput" min="1" value="1" />
-                                <button id="addProductBtn" type="button">Agregar</button>
-                            </div>
-                        </div>
-
-                        <!-- Lista de ítems agregados -->
-                        <div id="itemsList"></div>
-
-                        <label>
-                            Nota del pedido
-                            <textarea id="notes" rows="2" placeholder="Ej: Dejar en el portón, pago con $5000"></textarea>
-                        </label>
-                    </div>
-
-                    <div id="orderPreview" aria-live="polite">
-                        <strong>Previsualización del pedido</strong>
-                        <div id="previewContent" class="preview"></div>
-                    </div>
-
-                    <div class="actions">
-                        <button id="btnGenerate">Generar PDF</button>
-                        <button id="btnDownload" class="secondary" disabled>Descargar PDF</button>
-                        <button id="btnWhatsAppLink" class="secondary" disabled>Enviar por WhatsApp</button>
-                    </div>
-                </form>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Remito - Distribuidora Malvinas</title>
+    <link rel="stylesheet" href="pedidos.css" />
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="pedidos.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="empresa-info">
+                <h1>Distribuidora Malvinas</h1>
+                <p>CUIT: XX-XXXXXXXX-X</p>
+                <p>Monotributista</p>
+                <p>Domicilio: Pablo Areguati 2178 – Grand Bourg – Buenos Aires</p>
             </div>
-        </div>
-    </body>
+            <div class="comprobante-tipo">
+                <h2>Remito X</h2>
+                <p>N°: <span id="remitoNumber">0001</span></p>
+            </div>
+        </header>
+
+        <section class="card">
+            <h3>Generar Pedido / Remito</h3>
+
+            <form id="orderForm" onsubmit="return false;">
+                <label>Nombre del cliente
+                    <input id="customerName" placeholder="Ej: Juan Pérez" required />
+                </label>
+
+                <label>Teléfono
+                    <input id="customerPhone" placeholder="Ej: +54 9 11..." />
+                </label>
+
+                <label>Dirección
+                    <input id="address" placeholder="Calle y número" />
+                </label>
+
+                <div class="add-product-row">
+                    <select id="productSelect"></select>
+                    <input type="number" id="quantityInput" min="1" value="1" />
+                    <button type="button" id="addProductBtn">Agregar</button>
+                </div>
+
+                <div id="itemsList"></div>
+
+                <label>Nota
+                    <textarea id="notes" rows="2"></textarea>
+                </label>
+
+                <div id="orderPreview">
+                    <strong>Previsualización del Remito</strong>
+                    <div id="previewContent" class="preview"></div>
+                </div>
+
+                <div class="actions">
+                    <button id="btnGenerate">Generar PDF</button>
+                    <button id="btnDownload" class="secondary" disabled>Descargar PDF</button>
+                    <button id="btnWhatsAppLink" class="secondary" disabled>Enviar por WhatsApp</button>
+                </div>
+            </form>
+        </section>
+    </div>
+</body>
 </html>

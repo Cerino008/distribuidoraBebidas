@@ -1,8 +1,9 @@
+/* pedidos.css - Estilos para Remito X y formulario */
 body {
     display: flex;
     justify-content: center;
     background: #f6f8fa;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     color: #0f172a;
     margin: 0;
     padding: 2rem;
@@ -13,17 +14,42 @@ body {
     max-width: 900px;
 }
 
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.empresa-info h1 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.empresa-info p {
+    margin: 0.15rem 0;
+    font-size: 0.85rem;
+    color: #475569;
+}
+
+.comprobante-tipo h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    text-align: right;
+}
+
 .card {
     background: white;
     border-radius: 12px;
     box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
-    padding: 1.5rem;
+    padding: 1.25rem;
 }
 
 form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
 }
 
 label {
@@ -53,6 +79,7 @@ input, textarea, select {
     padding: 0.8rem;
     border-radius: 8px;
     background: #fafafa;
+    min-height: 48px;
 }
 
 .item-row {
@@ -65,10 +92,10 @@ button {
     background: #0ea5a4;
     color: white;
     border: none;
-    padding: 0.7rem 1rem;
+    padding: 0.6rem 0.9rem;
     border-radius: 8px;
     cursor: pointer;
-    transition: 0.2s;
+    transition: 0.15s;
 }
 
 button:hover {
@@ -83,7 +110,7 @@ button.secondary {
 .actions {
     display: flex;
     gap: 0.5rem;
-    margin-top: 1rem;
+    margin-top: 0.5rem;
 }
 
 #orderPreview {
@@ -91,7 +118,8 @@ button.secondary {
     padding: 1rem;
     border-radius: 8px;
     border: 1px dashed #e2e8f0;
-    margin-top: 1rem;
+    margin-top: 0.5rem;
+    min-height: 120px;
 }
 
 .preview-row {
@@ -119,9 +147,30 @@ button.secondary {
   color: #b91c1c;
 }
 
+/* Remito specific */
+.remito-header {
+    text-align: left;
+    font-size: 0.9rem;
+    margin-bottom: 0.6rem;
+    line-height: 1.25rem;
+}
 
+.total-row strong {
+    font-size: 1.05rem;
+}
+
+.firma {
+    margin-top: 1.2rem;
+    font-size: 0.9rem;
+    color: #0b1220;
+}
+
+/* Responsive */
 @media (max-width: 600px) {
     .actions {
+        flex-direction: column;
+    }
+    .header {
         flex-direction: column;
     }
 }
