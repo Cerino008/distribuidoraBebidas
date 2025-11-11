@@ -237,7 +237,8 @@ btnGenerate.addEventListener('click', async () => {
                 '',
                 'Pedido generado desde la web de la distribuidora'
             ].join('\n');
-            const waUrl = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+            const numero = "5491141615828";
+            const waUrl = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
             window.open(waUrl, '_blank');
         };
 
