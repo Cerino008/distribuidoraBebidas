@@ -5,12 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Remito - Distribuidora Malvinas</title>
     <link rel="stylesheet" href="pedidos.css" />
+    <!-- Biblioteca para convertir HTML a imagen (para PDF) -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <!-- Biblioteca para generar archivos PDF -->
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <!-- Nuestro archivo JavaScript principal -->
     <script src="pedidos.js" defer></script>
 </head>
 <body>
     <div class="container">
+        <!-- Encabezado con información de la empresa -->
         <header class="header">
             <div class="empresa-info">
                 <h1>Distribuidora Malvinas</h1>
@@ -20,43 +24,55 @@
             </div>
             <div class="comprobante-tipo">
                 <h2>Remito X</h2>
+                <!-- Número de remito que se actualiza automáticamente -->
                 <p>N°: <span id="remitoNumber">0001</span></p>
             </div>
         </header>
 
+        <!-- Sección principal del formulario -->
         <section class="card">
             <h3>Generar Pedido / Remito</h3>
 
+            <!-- Formulario principal - onsubmit="return false" evita recarga de página -->
             <form id="orderForm" onsubmit="return false;">
+                <!-- Campo para nombre del cliente -->
                 <label>Nombre del cliente
                     <input id="customerName" placeholder="Ej: Juan Pérez" required />
                 </label>
 
+                <!-- Campo para teléfono -->
                 <label>Teléfono
                     <input id="customerPhone" placeholder="Ej: +54 9 11..." />
                 </label>
 
+                <!-- Campo para dirección de entrega -->
                 <label>Dirección
                     <input id="address" placeholder="Calle y número" />
                 </label>
 
+                <!-- Fila para agregar productos: selector + cantidad + botón -->
                 <div class="add-product-row">
                     <select id="productSelect"></select>
                     <input type="number" id="quantityInput" min="1" value="1" />
                     <button type="button" id="addProductBtn">Agregar</button>
                 </div>
 
+                <!-- Lista donde se muestran los productos agregados -->
                 <div id="itemsList"></div>
 
+                <!-- Campo para notas adicionales -->
                 <label>Nota
                     <textarea id="notes" rows="2"></textarea>
                 </label>
 
+                <!-- Sección de previsualización del remito -->
                 <div id="orderPreview">
                     <strong>Previsualización del Remito</strong>
+                    <!-- Contenido de la previsualización (se genera dinámicamente) -->
                     <div id="previewContent" class="preview"></div>
                 </div>
 
+                <!-- Botones de acción -->
                 <div class="actions">
                     <button id="btnGenerate">Generar PDF</button>
                     <button id="btnDownload" class="secondary" disabled>Descargar PDF</button>
