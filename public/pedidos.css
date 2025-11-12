@@ -1,4 +1,4 @@
-/* pedidos.css - Estilos para Remito X y formulario */
+/* ------------------ GLOBAL ------------------ */
 body {
     display: flex;
     justify-content: center;
@@ -9,11 +9,13 @@ body {
     padding: 2rem;
 }
 
+/* ------------------ CONTENEDOR ------------------ */
 .container {
     width: 100%;
     max-width: 900px;
 }
 
+/* ------------------ ENCABEZADO ------------------ */
 .header {
     display: flex;
     justify-content: space-between;
@@ -39,6 +41,7 @@ body {
     text-align: right;
 }
 
+/* ------------------ TARJETA ------------------ */
 .card {
     background: white;
     border-radius: 12px;
@@ -46,6 +49,7 @@ body {
     padding: 1.25rem;
 }
 
+/* ------------------ FORMULARIO ------------------ */
 form {
     display: grid;
     grid-template-columns: 1fr;
@@ -68,6 +72,7 @@ input, textarea, select {
     font-size: 0.95rem;
 }
 
+/* ------------------ PRODUCTOS ------------------ */
 .add-product-row {
     display: flex;
     gap: 0.5rem;
@@ -88,6 +93,7 @@ input, textarea, select {
     margin-bottom: 0.4rem;
 }
 
+/* ------------------ BOTONES ------------------ */
 button {
     background: #0ea5a4;
     color: white;
@@ -113,6 +119,7 @@ button.secondary {
     margin-top: 0.5rem;
 }
 
+/* ------------------ PREVISUALIZACIÓN ------------------ */
 #orderPreview {
     background: #fff;
     padding: 1rem;
@@ -134,20 +141,20 @@ button.secondary {
 }
 
 .remove-btn {
-  background: none;
-  border: none;
-  color: #dc2626;
-  font-weight: bold;
-  cursor: pointer;
-  margin-left: 8px;
-  font-size: 1rem;
+    background: none;
+    border: none;
+    color: #dc2626;
+    font-weight: bold;
+    cursor: pointer;
+    margin-left: 8px;
+    font-size: 1rem;
 }
 
 .remove-btn:hover {
-  color: #b91c1c;
+    color: #b91c1c;
 }
 
-/* Remito specific */
+/* ------------------ REMITO ------------------ */
 .remito-header {
     text-align: left;
     font-size: 0.9rem;
@@ -165,7 +172,7 @@ button.secondary {
     color: #0b1220;
 }
 
-/* Responsive */
+/* ------------------ RESPONSIVE ------------------ */
 @media (max-width: 600px) {
     .actions {
         flex-direction: column;
