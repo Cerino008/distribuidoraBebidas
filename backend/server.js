@@ -1,139 +1,148 @@
 // backend/server.js
-require('dotenv').config(); // Carga variables de entorno desde archivo .env
-const express = require('express'); // Framework web para Node.js
-const cors = require('cors'); // Permite peticiones entre diferentes dominios (CORS)
-const { google } = require('googleapis'); // Librería oficial de Google APIs
-const path = require('path'); // Utilidad para manejar rutas de archivos
+// Servidor Express que expone:
+//  - GET /api/catalogo  -> { items: [...], ultimaModificacion: "ISOdate" }
+//  - GET /api/info      -> { lastUpdate: "ISOdate" }  (opcional, compatibilidad)
+// Además sirve estáticos desde ../public
+//
+// Requiere en /backend/.env las variables:
+//   SPREADSHEET_ID=tu_spreadsheet_id
+//   GOOGLE_CREDENTIALS={"type":...}   (o usar GOOGLE_CLIENT_EMAIL y GOOGLE_PRIVATE_KEY separados)
+//   (opcional) RANGE=Hoja1!A:F
+//
+// IMPORTANTE: no subir .env ni credentials.json al repo (usar .gitignore)
 
-// Inicializar la aplicación Express
+require('dotenv').config();
+
+const express = require('express');
+const cors = require('cors');
+const { google } = require('googleapis');
+const path = require('path');
+
 const app = express();
+app.use(cors());
+app.use(express.json());
 
-// Configurar middlewares (capas de procesamiento)
-app.use(cors()); // Habilita CORS para todas las rutas
-app.use(express.json()); // Permite recibir datos JSON en las peticiones
-app.use(express.static(path.join(__dirname, '../public'))); // Sirve archivos estáticos (HTML, CSS, JS)
+// Servir frontend estático desde /public
+app.use(express.static(path.join(__dirname, '../public')));
 
-// --- CONFIGURACIÓN DE GOOGLE SHEETS ---
-const SPREADSHEET_ID = process.env.SPREADSHEET_ID; // ID de la hoja de cálculo de Google
-const RANGE = process.env.RANGE || 'Hoja1!A:D'; // Rango de celdas a leer (por defecto A:D de Hoja1)
+// -------------------- CONFIG --------------------
+const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
+const RANGE = process.env.RANGE || 'Hoja1!A:F'; // A..F: ID, Producto, Precio, Categoría, ImagenURL, Descripción
 
-// --- CARGA DE CREDENCIALES DE GOOGLE ---
-let credentials; // Variable para almacenar las credenciales de servicio
-
+// Cargar credenciales desde variables de entorno (dos formas soportadas)
+let credentials;
 try {
-    // Diferentes formas de cargar credenciales según la configuración:
-    
-    // 1. Desde variable de entorno GOOGLE_CREDENTIALS (JSON completo)
-    if (process.env.GOOGLE_CREDENTIALS) {
-        credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
-    } 
-    // 2. Desde variables separadas (email + clave privada)
-    else if (process.env.GOOGLE_CLIENT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
-        credentials = {
-            type: 'service_account', // Tipo de cuenta de servicio
-            client_email: process.env.GOOGLE_CLIENT_EMAIL, // Email de la cuenta de servicio
-            private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'), // Clave privada (arregla saltos de línea)
-        };
-    } 
-    // 3. Error si no hay credenciales
-    else {
-        throw new Error('No se encontraron credenciales de Google.');
-    }
+  if (process.env.GOOGLE_CREDENTIALS) {
+    // GOOGLE_CREDENTIALS debe contener el JSON completo (una línea o con \n)
+    credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+  } else if (process.env.GOOGLE_CLIENT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
+    credentials = {
+      type: 'service_account',
+      client_email: process.env.GOOGLE_CLIENT_EMAIL,
+      // si en el panel la private key vino con \n, reemplazar
+      private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    };
+  } else {
+    throw new Error('No se encontraron credenciales de Google en variables de entorno.');
+  }
 } catch (err) {
-    // Manejo de errores en la carga de credenciales
-    console.error('❌ No se pudieron leer las credenciales desde GOOGLE_CREDENTIALS.');
-    console.error(err.message);
-    process.exit(1); // Termina la aplicación si no hay credenciales
+  console.error('❌ No se pudieron leer las credenciales desde GOOGLE_CREDENTIALS / GOOGLE_CLIENT_EMAIL + GOOGLE_PRIVATE_KEY.');
+  console.error(err.message || err);
+  process.exit(1);
 }
 
-// --- INICIALIZACIÓN DEL CLIENTE DE GOOGLE SHEETS ---
-/**
- * Crea y autentica el cliente para acceder a Google Sheets API
- * @returns {Object} Cliente autenticado de Google Sheets
- */
+// -------------------- Helpers: inicializar clientes --------------------
 async function getSheetsClient() {
-    // Configura la autenticación con las credenciales
-    const auth = new google.auth.GoogleAuth({
-        credentials, // Credenciales cargadas anteriormente
-        scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'], // Solo permiso de lectura
-    });
-    
-    // Obtiene el cliente autenticado
-    const client = await auth.getClient();
-    
-    // Retorna la instancia de Google Sheets API
-    return google.sheets({ version: 'v4', auth: client });
+  const auth = new google.auth.GoogleAuth({
+    credentials,
+    scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+  });
+  const client = await auth.getClient();
+  return google.sheets({ version: 'v4', auth: client });
 }
 
-// --- ENDPOINTS (RUTAS) DE LA API ---
+async function getDriveClient() {
+  const auth = new google.auth.GoogleAuth({
+    credentials,
+    scopes: ['https://www.googleapis.com/auth/drive.metadata.readonly'],
+  });
+  const client = await auth.getClient();
+  return google.drive({ version: 'v3', auth: client });
+}
 
-/**
- * ENDPOINT: /api/catalogo
- * Método: GET
- * Propósito: Obtener los productos desde Google Sheets
- * Respuesta: Array de objetos con información de productos
- */
+// -------------------- Endpoint: /api/catalogo --------------------
+// Devuelve { items: [...], ultimaModificacion: "ISOdate" }
+// items -> objetos con: id, producto, precio, categoria, imagen, descripcion
 app.get('/api/catalogo', async (req, res) => {
-    try {
-        // Obtiene el cliente autenticado de Google Sheets
-        const sheets = await getSheetsClient();
-        
-        // Hace la petición a Google Sheets API para obtener los valores
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: SPREADSHEET_ID, // ID de la hoja de cálculo
-            range: RANGE, // Rango de celdas a leer
-        });
+  try {
+    const sheets = await getSheetsClient();
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: RANGE,
+    });
 
-        // Extrae las filas de datos (o array vacío si no hay datos)
-        const rows = response.data.values || [];
-        
-        // Si no hay filas, retorna array vacío
-        if (rows.length === 0) return res.json([]);
-
-        // Procesamiento de datos:
-        
-        // 1. Obtiene los encabezados (primera fila) y los normaliza
-        const headers = rows[0].map(h => String(h).toLowerCase().trim());
-        
-        // 2. Convierte las filas de datos en objetos estructurados
-        const items = rows.slice(1).map(row => {
-            const obj = {};
-            
-            // Asigna cada valor a su propiedad correspondiente según el encabezado
-            headers.forEach((key, i) => obj[key] = row[i] ?? ''); // ?? '' para valores nulos/undefined
-            
-            // Retorna objeto normalizado con propiedades esperadas
-            return {
-                id: obj.id || '', // ID del producto
-                producto: obj.producto || '', // Nombre del producto
-                precio: Number(obj.precio) || 0, // Precio (convertido a número)
-                categoria: obj.categoria || obj['categoría'] || '', // Categoría (compatible con tilde)
-            };
-        });
-
-        // Envía la respuesta JSON con los productos procesados
-        res.json(items);
-        
-    } catch (err) {
-        // Manejo de errores específicos de Google Sheets
-        console.error('Error leyendo Google Sheets:', err);
-        
-        // Posibles errores:
-        // - Credenciales inválidas
-        // - Hoja de cálculo no encontrada
-        // - Sin permisos de acceso
-        // - Problemas de red
-        
-        res.status(500).json({ error: 'Error al leer Google Sheets' });
+    const rows = response.data.values || [];
+    if (rows.length === 0) {
+      return res.json({ items: [], ultimaModificacion: null });
     }
+
+    // Obtener metadata de archivo (fecha de modificación) mediante Drive API
+    const drive = await getDriveClient();
+    const file = await drive.files.get({
+      fileId: SPREADSHEET_ID,
+      fields: 'modifiedTime'
+    });
+    const ultimaModificacion = file.data.modifiedTime || null;
+
+    // Mapear filas: la primera fila se asume como encabezados
+    const headers = rows[0].map(h => String(h).toLowerCase().trim());
+    const items = rows.slice(1).map(row => {
+      const obj = {};
+      headers.forEach((key, i) => {
+        obj[key] = row[i] !== undefined ? row[i] : '';
+      });
+
+      // Normalizar nombres de campo (apoya nombres: imagen, imagenurl, descripcion)
+      return {
+        id: obj.id || '',
+        producto: obj.producto || '',
+        precio: Number((obj.precio || obj.price || '').toString().replace(/\./g, '').replace(/,/g, '.')) || 0,
+        categoria: obj.categoria || obj['categoría'] || '',
+        imagen: obj.imagen || obj.imagenurl || '',
+        descripcion: obj.descripcion || obj.desc || ''
+      };
+    });
+
+    res.json({ items, ultimaModificacion });
+  } catch (err) {
+    console.error('❌ Error leyendo Google Sheets:', err && err.message ? err.message : err);
+    res.status(500).json({ error: 'Error al leer Google Sheets' });
+  }
 });
 
-// --- INICIALIZACIÓN DEL SERVIDOR ---
-const PORT = process.env.PORT || 3000; // Puerto desde variable de entorno o 3000 por defecto
 
-// Inicia el servidor
+// -------------------- Endpoint opcional /api/info --------------------
+// Devuelve solo la fecha de última modificación: { lastUpdate: "ISOdate" }
+// Útil si el frontend prefiere pedir solo la info.
+app.get('/api/info', async (req, res) => {
+  try {
+    const drive = await getDriveClient();
+    const file = await drive.files.get({
+      fileId: SPREADSHEET_ID,
+      fields: 'modifiedTime'
+    });
+    res.json({ lastUpdate: file.data.modifiedTime });
+  } catch (err) {
+    console.error('❌ Error obteniendo metadata Drive:', err);
+    res.status(500).json({ error: 'Error obteniendo info' });
+  }
+});
+
+// -------------------- Iniciar servidor --------------------
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`✅ Backend corriendo en puerto ${PORT}`);
-    console.log(`📊 Conectado a Google Sheets: ${SPREADSHEET_ID}`);
-    console.log(`🔗 API disponible en: http://localhost:${PORT}/api/catalogo`);
+  console.log(`✅ Backend corriendo en puerto ${PORT}`);
+  console.log(`📊 SPREADSHEET_ID: ${SPREADSHEET_ID ? SPREADSHEET_ID.slice(0,8) + '...' : 'NO CONFIGURADO'}`);
+  console.log(`🔗 GET /api/catalogo`);
+  console.log(`🔗 GET /api/info`);
 });
