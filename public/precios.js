@@ -52,7 +52,7 @@ function renderTabla(){
 
   catalogo.forEach(item => {
     const producto = item.producto || '';
-    const imagen = item.imagen || '';
+    const imagen = normalizarImagen(item.imagen || '');
     const descripcion = item.descripcion || '';
     const categoria = item.categoria || '';
     const precio = Number(item.precio || 0);
@@ -157,4 +157,14 @@ async function descargarPDF() {
     btnDescargar.disabled = false;
     btnDescargar.textContent = 'Descargar PDF';
   }
+}
+
+function normalizarImagen(url) {
+  if (!url) return '';
+  // Si es link de Google Drive tipo "/file/d/ID/view?usp=sharing"
+  const match = url.match(/\/d\/([^/]+)\//);
+  if (match) {
+    return `https://drive.google.com/uc?id=${match[1]}`;
+  }
+  return url;
 }
