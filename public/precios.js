@@ -161,10 +161,52 @@ async function descargarPDF() {
 
 function normalizarImagen(url) {
   if (!url) return '';
-  const match = url.match(/\/d\/([^/?]+)/);
-  if (match) return `https://drive.google.com/uc?id=${match[1]}`;
+
+  // Trim
+  url = String(url).trim();
+
+  // Si ya es data:image...
+  if (url.startsWith('data:')) return url;
+
+  // 1) Google Drive: /file/d/ID/...  -> uc?id=ID
+  let m = url.match(/\/d\/([^/?#]+)/i);
+  if (m && m[1]) {
+    return `https://drive.google.com/uc?export=view&id=${m[1]}`;
+  }
+
+  // 1b) Share links that sometimes come as /open?id=ID
+  m = url.match(/[?&]id=([^&]+)/i);
+  if (m && m[1]) {
+    return `https://drive.google.com/uc?export=view&id=${m[1]}`;
+  }
+
+  // 2) imgur page links like imgur.com/ABC or imgur.com/gallery/ABC
+  //    convert to i.imgur.com/ID.png (try png then jpg fallback handled by browser)
+  m = url.match(/https?:\/\/(?:i\.)?imgur\.com\/(?:gallery\/)?([A-Za-z0-9]+)(?:\.\w+)?/i);
+  if (m && m[1]) {
+    // If it already has extension, keep it
+    const extMatch = url.match(/\.([a-zA-Z0-9]{3,4})(?:$|\?|#)/);
+    if (extMatch) {
+      return `https://i.imgur.com/${m[1]}.${extMatch[1]}`;
+    }
+    // default to png (browser will 404->try fallback)
+    return `https://i.imgur.com/${m[1]}.png`;
+  }
+
+  // 3) If it's a googleusercontent direct link, return as is
+  if (/googleusercontent\.com/i.test(url)) return url;
+
+  // 4) If it's already a direct image URL (ends with image ext) return as is
+  if (/\.(png|jpe?g|gif|webp|svg)(?:$|\?|#)/i.test(url)) return url;
+
+  // 5) If it's a Drive preview link with export=download etc, try to extract id
+  m = url.match(/\/uc\?export=download&id=([^&]+)/i);
+  if (m && m[1]) return `https://drive.google.com/uc?export=view&id=${m[1]}`;
+
+  // Default: return original (best effort)
   return url;
 }
+
 
 
 
