@@ -252,7 +252,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // ===== MANEJO DE RUTAS NO ENCONTRADAS =====
-app.use('*', (req, res) => {
+app.use((req, res) => {
   res.status(404).json({ 
     error: 'Ruta no encontrada',
     rutasDisponibles: ['/api/catalogo', '/api/info', '/api/health']
