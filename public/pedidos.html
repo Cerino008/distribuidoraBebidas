@@ -1,52 +1,69 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <!-- Configuración básica del documento -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
     <title>Remito - Distribuidora Malvinas</title>
+    
+    <!-- Hojas de estilo -->
     <link rel="stylesheet" href="pedidos.css" />
-    <!-- Biblioteca para convertir HTML a imagen (para PDF) -->
+    
+    <!-- Librerías externas para generación de PDF -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <!-- Biblioteca para generar archivos PDF -->
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-    <!-- Nuestro archivo JavaScript principal -->
+    
+    <!-- Script principal de la aplicación (cargado de forma diferida) -->
     <script src="pedidos.js" defer></script>
 </head>
+
 <body>
+    <!-- Contenedor principal -->
     <div class="container">
-        <!-- Encabezado con información de la empresa -->
+        
+        <!-- ===== ENCABEZADO CON INFORMACIÓN DE LA EMPRESA ===== -->
         <header class="header">
+            
+            <!-- Información de la empresa -->
             <div class="empresa-info">
                 <h1>Distribuidora Malvinas</h1>
                 <p>CUIT: XX-XXXXXXXX-X</p>
                 <p>Monotributista</p>
                 <p>Domicilio: Pablo Areguati 2178 – Grand Bourg – Buenos Aires</p>
             </div>
+            
+            <!-- Información del comprobante -->
             <div class="comprobante-tipo">
                 <h2>Remito X</h2>
                 <!-- Número de remito que se actualiza automáticamente -->
                 <p>N°: <span id="remitoNumber">0001</span></p>
             </div>
+            
         </header>
 
-        <!-- Sección principal del formulario -->
+        <!-- ===== SECCIÓN PRINCIPAL DEL FORMULARIO ===== -->
         <section class="card">
             <h3>Generar Pedido / Remito</h3>
 
             <!-- Formulario principal - onsubmit="return false" evita recarga de página -->
             <form id="orderForm" onsubmit="return false;">
+                
                 <!-- Campo para nombre del cliente -->
-                <label>Nombre del cliente
+                <label>
+                    Nombre del cliente
                     <input id="customerName" placeholder="Ej: Juan Pérez" required />
                 </label>
 
                 <!-- Campo para teléfono -->
-                <label>Teléfono
+                <label>
+                    Teléfono
                     <input id="customerPhone" placeholder="Ej: +54 9 11..." />
                 </label>
 
                 <!-- Campo para dirección de entrega -->
-                <label>Dirección
+                <label>
+                    Dirección
                     <input id="address" placeholder="Calle y número" />
                 </label>
 
@@ -61,7 +78,8 @@
                 <div id="itemsList"></div>
 
                 <!-- Campo para notas adicionales -->
-                <label>Nota
+                <label>
+                    Nota
                     <textarea id="notes" rows="2"></textarea>
                 </label>
 
@@ -78,6 +96,7 @@
                     <button id="btnDownload" class="secondary" disabled>Descargar PDF</button>
                     <button id="btnWhatsAppLink" class="secondary" disabled>Enviar por WhatsApp</button>
                 </div>
+                
             </form>
         </section>
     </div>

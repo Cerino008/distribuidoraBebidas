@@ -1,21 +1,46 @@
-/* ------------------ GLOBAL ------------------ */
+/* pedidos.css - Estilos para el sistema de generación de remitos */
+/* Diseño moderno y responsive para la aplicación de pedidos */
+
+/* ===== VARIABLES CSS ===== */
+:root {
+    --color-primario: #0ea5a4;
+    --color-primario-hover: #0c8b8a;
+    --color-secundario: #e6eef0;
+    --color-texto-secundario: #08303b;
+    --color-fondo: #f6f8fa;
+    --color-texto: #0f172a;
+    --color-texto-suave: #475569;
+    --color-borde: #e2e8f0;
+    --color-tarjeta: #ffffff;
+    --color-peligro: #dc2626;
+    --color-peligro-hover: #b91c1c;
+    --radio-borde: 12px;
+    --radio-borde-pequeno: 8px;
+    --sombra: 0 6px 18px rgba(15, 23, 42, 0.08);
+}
+
+/* ===== ESTILOS GENERALES ===== */
+
 body {
     display: flex;
     justify-content: center;
-    background: #f6f8fa;
+    background: var(--color-fondo);
     font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    color: #0f172a;
+    color: var(--color-texto);
     margin: 0;
     padding: 2rem;
+    min-height: 100vh;
 }
 
-/* ------------------ CONTENEDOR ------------------ */
+/* ===== CONTENEDOR PRINCIPAL ===== */
+
 .container {
     width: 100%;
     max-width: 900px;
 }
 
-/* ------------------ ENCABEZADO ------------------ */
+/* ===== ENCABEZADO CON INFORMACIÓN DE LA EMPRESA ===== */
+
 .header {
     display: flex;
     justify-content: space-between;
@@ -24,160 +49,323 @@ body {
     margin-bottom: 1rem;
 }
 
+/* Información de la empresa */
 .empresa-info h1 {
     margin: 0;
     font-size: 1.25rem;
+    font-weight: 600;
 }
 
 .empresa-info p {
     margin: 0.15rem 0;
     font-size: 0.85rem;
-    color: #475569;
+    color: var(--color-texto-suave);
+    line-height: 1.4;
 }
 
+/* Información del comprobante */
 .comprobante-tipo h2 {
     margin: 0;
     font-size: 1.1rem;
     text-align: right;
+    font-weight: 600;
 }
 
-/* ------------------ TARJETA ------------------ */
+.comprobante-tipo p {
+    margin: 0.15rem 0;
+    font-size: 0.85rem;
+    color: var(--color-texto-suave);
+    text-align: right;
+}
+
+/* ===== TARJETA PRINCIPAL DEL FORMULARIO ===== */
+
 .card {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+    background: var(--color-tarjeta);
+    border-radius: var(--radio-borde);
+    box-shadow: var(--sombra);
     padding: 1.25rem;
 }
 
-/* ------------------ FORMULARIO ------------------ */
+.card h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+    color: var(--color-texto);
+    font-weight: 600;
+}
+
+/* ===== FORMULARIO Y CONTROLES ===== */
+
 form {
     display: grid;
     grid-template-columns: 1fr;
     gap: 0.75rem;
 }
 
+/* Etiquetas de formulario */
 label {
     font-size: 0.9rem;
-    color: #334155;
+    color: var(--color-texto-suave);
     display: flex;
     flex-direction: column;
     gap: 0.3rem;
+    font-weight: 500;
 }
 
+/* Campos de entrada */
 input, textarea, select {
     width: 100%;
     padding: 0.6rem;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
+    border-radius: var(--radio-borde-pequeno);
+    border: 1px solid var(--color-borde);
     font-size: 0.95rem;
+    font-family: inherit;
+    transition: border-color 0.15s ease;
 }
 
-/* ------------------ PRODUCTOS ------------------ */
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--color-primario);
+}
+
+/* ===== SECCIÓN DE AGREGAR PRODUCTOS ===== */
+
 .add-product-row {
     display: flex;
     gap: 0.5rem;
     align-items: center;
+    margin: 0.5rem 0;
 }
 
+.add-product-row select {
+    flex: 2;
+}
+
+.add-product-row input {
+    flex: 1;
+    min-width: 80px;
+}
+
+.add-product-row button {
+    flex: 1;
+    min-width: 100px;
+}
+
+/* Lista de productos agregados */
 #itemsList {
-    border: 1px dashed #e2e8f0;
+    border: 1px dashed var(--color-borde);
     padding: 0.8rem;
-    border-radius: 8px;
+    border-radius: var(--radio-borde-pequeno);
     background: #fafafa;
     min-height: 48px;
+    margin: 0.5rem 0;
 }
 
+/* Fila individual de producto */
 .item-row {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     margin-bottom: 0.4rem;
+    padding: 0.3rem 0;
 }
 
-/* ------------------ BOTONES ------------------ */
+.item-row:last-child {
+    margin-bottom: 0;
+}
+
+.item-row > div:first-child {
+    flex: 1;
+}
+
+.item-row > div:last-child {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* ===== BOTONES Y ACCIONES ===== */
+
 button {
-    background: #0ea5a4;
+    background: var(--color-primario);
     color: white;
     border: none;
     padding: 0.6rem 0.9rem;
-    border-radius: 8px;
+    border-radius: var(--radio-borde-pequeno);
     cursor: pointer;
-    transition: 0.15s;
+    transition: background-color 0.15s ease;
+    font-size: 0.9rem;
+    font-weight: 500;
+    font-family: inherit;
 }
 
 button:hover {
-    background: #0c8b8a;
+    background: var(--color-primario-hover);
 }
 
+/* Botón secundario */
 button.secondary {
-    background: #e6eef0;
-    color: #08303b;
+    background: var(--color-secundario);
+    color: var(--color-texto-secundario);
 }
 
-.actions {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
+button.secondary:hover {
+    background: #d4e4e7;
 }
 
-/* ------------------ PREVISUALIZACIÓN ------------------ */
-#orderPreview {
-    background: #fff;
-    padding: 1rem;
-    border-radius: 8px;
-    border: 1px dashed #e2e8f0;
-    margin-top: 0.5rem;
-    min-height: 120px;
-}
-
-.preview-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.4rem;
-}
-
-.small {
-    font-size: 0.85rem;
-    color: #475569;
-}
-
+/* Botón de eliminar */
 .remove-btn {
     background: none;
     border: none;
-    color: #dc2626;
+    color: var(--color-peligro);
     font-weight: bold;
     cursor: pointer;
     margin-left: 8px;
     font-size: 1rem;
+    padding: 0.2rem;
+    border-radius: 4px;
 }
 
 .remove-btn:hover {
-    color: #b91c1c;
+    color: var(--color-peligro-hover);
+    background: rgba(220, 38, 38, 0.1);
 }
 
-/* ------------------ REMITO ------------------ */
+/* Contenedor de acciones */
+.actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.actions button {
+    flex: 1;
+}
+
+/* ===== PREVISUALIZACIÓN DEL REMITO ===== */
+
+#orderPreview {
+    background: var(--color-tarjeta);
+    padding: 1rem;
+    border-radius: var(--radio-borde-pequeno);
+    border: 1px dashed var(--color-borde);
+    margin-top: 1rem;
+    min-height: 120px;
+}
+
+#orderPreview strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--color-texto);
+    font-size: 0.95rem;
+}
+
+/* Fila de previsualización */
+.preview-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+    padding: 0.2rem 0;
+}
+
+.preview-row:last-child {
+    margin-bottom: 0;
+}
+
+/* Texto pequeño */
+.small {
+    font-size: 0.85rem;
+    color: var(--color-texto-suave);
+    line-height: 1.3;
+}
+
+/* ===== ESTILOS ESPECÍFICOS DEL REMITO ===== */
+
 .remito-header {
     text-align: left;
     font-size: 0.9rem;
     margin-bottom: 0.6rem;
     line-height: 1.25rem;
+    color: var(--color-texto);
 }
 
+.remito-header strong {
+    font-size: 1rem;
+}
+
+/* Fila de total */
 .total-row strong {
     font-size: 1.05rem;
+    color: var(--color-texto);
 }
 
+/* Sección de firma */
 .firma {
     margin-top: 1.2rem;
     font-size: 0.9rem;
-    color: #0b1220;
+    color: var(--color-texto);
+    text-align: center;
+    line-height: 1.4;
 }
 
-/* ------------------ RESPONSIVE ------------------ */
+/* Estados vacíos */
+.empty {
+    color: var(--color-texto-suave);
+    font-style: italic;
+    text-align: center;
+    padding: 0.5rem;
+}
+
+/* ===== DISEÑO RESPONSIVE ===== */
+
+@media (max-width: 768px) {
+    body {
+        padding: 1rem;
+    }
+    
+    .card {
+        padding: 1rem;
+    }
+}
+
 @media (max-width: 600px) {
+    .header {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .comprobante-tipo h2,
+    .comprobante-tipo p {
+        text-align: left;
+    }
+    
     .actions {
         flex-direction: column;
     }
-    .header {
+    
+    .add-product-row {
         flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .add-product-row select,
+    .add-product-row input,
+    .add-product-row button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 0.5rem;
+    }
+    
+    .card {
+        padding: 0.75rem;
+        border-radius: 8px;
+    }
+    
+    form {
+        gap: 0.5rem;
     }
 }

@@ -1,16 +1,18 @@
 // backend/server.js
-// Servidor Express que expone:
-//  - GET /api/catalogo  -> { items: [...], ultimaModificacion: "ISOdate" }
-//  - GET /api/info      -> { lastUpdate: "ISOdate" }  (opcional, compatibilidad)
-// Además sirve estáticos desde ../public
+// Servidor Express que sirve el catálogo desde Google Sheets y archivos estáticos
+// Endpoints:
+//   - GET /api/catalogo  -> { items: [...], ultimaModificacion: "ISOdate" }
+//   - GET /api/info      -> { lastUpdate: "ISOdate" }  (opcional, compatibilidad)
+// Sirve archivos estáticos desde ../public
 //
-// Requiere en /backend/.env las variables:
+// Variables de entorno requeridas en /backend/.env:
 //   SPREADSHEET_ID=tu_spreadsheet_id
 //   GOOGLE_CREDENTIALS={"type":...}   (o usar GOOGLE_CLIENT_EMAIL y GOOGLE_PRIVATE_KEY separados)
 //   (opcional) RANGE=Hoja1!A:F
 //
-// IMPORTANTE: no subir .env ni credentials.json al repo (usar .gitignore)
+// IMPORTANTE: No subir .env ni credentials.json al repositorio (usar .gitignore)
 
+// ===== CONFIGURACIÓN INICIAL =====
 require('dotenv').config();
 
 const express = require('express');
@@ -19,130 +21,254 @@ const { google } = require('googleapis');
 const path = require('path');
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+const PORT = process.env.PORT || 3000;
 
-// Servir frontend estático desde /public
+// ===== CONFIGURACIÓN DE MIDDLEWARES =====
+app.use(cors()); // Habilita CORS para todas las rutas
+app.use(express.json()); // Parsea JSON en las requests
+
+// Servir archivos estáticos del frontend
 app.use(express.static(path.join(__dirname, '../public')));
 
-// -------------------- CONFIG --------------------
+// ===== CONFIGURACIÓN DE GOOGLE SHEETS =====
 const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
-const RANGE = process.env.RANGE || 'Hoja1!A:F'; // A..F: ID, Producto, Precio, Categoría, ImagenURL, Descripción
+const RANGO_HOJA = process.env.RANGE || 'Hoja1!A:F'; // Columnas A-F: ID, Producto, Precio, Categoría, ImagenURL, Descripción
 
-// Cargar credenciales desde variables de entorno (dos formas soportadas)
-let credentials;
-try {
-  if (process.env.GOOGLE_CREDENTIALS) {
-    // GOOGLE_CREDENTIALS debe contener el JSON completo (una línea o con \n)
-    credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
-  } else if (process.env.GOOGLE_CLIENT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
-    credentials = {
-      type: 'service_account',
-      client_email: process.env.GOOGLE_CLIENT_EMAIL,
-      // si en el panel la private key vino con \n, reemplazar
-      private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    };
-  } else {
-    throw new Error('No se encontraron credenciales de Google en variables de entorno.');
+// ===== CARGA Y VALIDACIÓN DE CREDENCIALES =====
+/**
+ * Carga y valida las credenciales de Google desde variables de entorno
+ * Soporta dos formatos: JSON completo o email + clave privada separados
+ * @returns {Object} Credenciales configuradas para Google APIs
+ * @throws {Error} Si no se encuentran credenciales válidas
+ */
+function cargarCredencialesGoogle() {
+  try {
+    if (process.env.GOOGLE_CREDENTIALS) {
+      // GOOGLE_CREDENTIALS debe contener el JSON completo
+      return JSON.parse(process.env.GOOGLE_CREDENTIALS);
+    } else if (process.env.GOOGLE_CLIENT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
+      // Credenciales por separado (formato común en servicios como Railway)
+      return {
+        type: 'service_account',
+        client_email: process.env.GOOGLE_CLIENT_EMAIL,
+        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'), // Convierte \n a saltos de línea reales
+      };
+    } else {
+      throw new Error('No se encontraron credenciales de Google en las variables de entorno');
+    }
+  } catch (error) {
+    console.error('❌ Error cargando credenciales de Google:', error.message);
+    console.error('💡 Asegúrate de configurar GOOGLE_CREDENTIALES o GOOGLE_CLIENT_EMAIL + GOOGLE_PRIVATE_KEY');
+    process.exit(1);
   }
-} catch (err) {
-  console.error('❌ No se pudieron leer las credenciales desde GOOGLE_CREDENTIALS / GOOGLE_CLIENT_EMAIL + GOOGLE_PRIVATE_KEY.');
-  console.error(err.message || err);
-  process.exit(1);
 }
 
-// -------------------- Helpers: inicializar clientes --------------------
-async function getSheetsClient() {
-  const auth = new google.auth.GoogleAuth({
-    credentials,
+const CREDENCIALES_GOOGLE = cargarCredencialesGoogle();
+
+// ===== CLIENTES DE GOOGLE APIS =====
+/**
+ * Inicializa y retorna un cliente autenticado de Google Sheets
+ * @returns {Object} Cliente de Google Sheets configurado
+ */
+async function obtenerClienteSheets() {
+  const autenticacion = new google.auth.GoogleAuth({
+    credentials: CREDENCIALES_GOOGLE,
     scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
   });
-  const client = await auth.getClient();
-  return google.sheets({ version: 'v4', auth: client });
+  
+  const cliente = await autenticacion.getClient();
+  return google.sheets({ version: 'v4', auth: cliente });
 }
 
-async function getDriveClient() {
-  const auth = new google.auth.GoogleAuth({
-    credentials,
+/**
+ * Inicializa y retorna un cliente autenticado de Google Drive
+ * @returns {Object} Cliente de Google Drive configurado
+ */
+async function obtenerClienteDrive() {
+  const autenticacion = new google.auth.GoogleAuth({
+    credentials: CREDENCIALES_GOOGLE,
     scopes: ['https://www.googleapis.com/auth/drive.metadata.readonly'],
   });
-  const client = await auth.getClient();
-  return google.drive({ version: 'v3', auth: client });
+  
+  const cliente = await autenticacion.getClient();
+  return google.drive({ version: 'v3', auth: cliente });
 }
 
-// -------------------- Endpoint: /api/catalogo --------------------
-// Devuelve { items: [...], ultimaModificacion: "ISOdate" }
-// items -> objetos con: id, producto, precio, categoria, imagen, descripcion
+/**
+ * Obtiene la fecha de última modificación del archivo de Google Sheets
+ * @param {string} idArchivo - ID del spreadsheet
+ * @returns {string|null} Fecha de modificación en formato ISO o null si hay error
+ */
+async function obtenerUltimaModificacion(idArchivo) {
+  try {
+    const drive = await obtenerClienteDrive();
+    const archivo = await drive.files.get({
+      fileId: idArchivo,
+      fields: 'modifiedTime'
+    });
+    
+    return archivo.data.modifiedTime || null;
+  } catch (error) {
+    console.error('⚠️ No se pudo obtener la fecha de modificación:', error.message);
+    return null;
+  }
+}
+
+/**
+ * Normaliza y limpia los datos de un producto del spreadsheet
+ * @param {Object} producto - Objeto con datos crudos del producto
+ * @returns {Object} Producto normalizado con campos estandarizados
+ */
+function normalizarProducto(producto) {
+  // Convertir precio a número (soporta formatos con . y ,)
+  const precioCrudo = (producto.precio || producto.price || '').toString();
+  const precioLimpio = Number(precioCrudo.replace(/\./g, '').replace(/,/g, '.')) || 0;
+
+  return {
+    id: producto.id || '',
+    producto: producto.producto || '',
+    precio: precioLimpio,
+    categoria: producto.categoria || producto['categoría'] || '',
+    imagen: producto.imagen || producto.imagenurl || '',
+    descripcion: producto.descripcion || producto.desc || ''
+  };
+}
+
+// ===== ENDPOINTS DE LA API =====
+
+/**
+ * Endpoint: /api/catalogo
+ * Devuelve todos los productos del spreadsheet con metadata
+ * Response: { items: Array, ultimaModificacion: string }
+ */
 app.get('/api/catalogo', async (req, res) => {
   try {
-    const sheets = await getSheetsClient();
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: SPREADSHEET_ID,
-      range: RANGE,
-    });
-
-    const rows = response.data.values || [];
-    if (rows.length === 0) {
-      return res.json({ items: [], ultimaModificacion: null });
+    // Validar configuración básica
+    if (!SPREADSHEET_ID) {
+      return res.status(500).json({ 
+        error: 'SPREADSHEET_ID no configurado en las variables de entorno' 
+      });
     }
 
-    // Obtener metadata de archivo (fecha de modificación) mediante Drive API
-    const drive = await getDriveClient();
-    const file = await drive.files.get({
-      fileId: SPREADSHEET_ID,
-      fields: 'modifiedTime'
+    // Obtener datos del spreadsheet
+    const sheets = await obtenerClienteSheets();
+    const respuesta = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: RANGO_HOJA,
     });
-    const ultimaModificacion = file.data.modifiedTime || null;
 
-    // Mapear filas: la primera fila se asume como encabezados
-    const headers = rows[0].map(h => String(h).toLowerCase().trim());
-    const items = rows.slice(1).map(row => {
-      const obj = {};
-      headers.forEach((key, i) => {
-        obj[key] = row[i] !== undefined ? row[i] : '';
+    const filas = respuesta.data.values || [];
+    
+    // Si no hay datos, retornar array vacío
+    if (filas.length <= 1) {
+      return res.json({ 
+        items: [], 
+        ultimaModificacion: null 
       });
+    }
 
-      // Normalizar nombres de campo (apoya nombres: imagen, imagenurl, descripcion)
-      return {
-        id: obj.id || '',
-        producto: obj.producto || '',
-        precio: Number((obj.precio || obj.price || '').toString().replace(/\./g, '').replace(/,/g, '.')) || 0,
-        categoria: obj.categoria || obj['categoría'] || '',
-        imagen: obj.imagen || obj.imagenurl || '',
-        descripcion: obj.descripcion || obj.desc || ''
-      };
+    // Obtener fecha de última modificación
+    const ultimaModificacion = await obtenerUltimaModificacion(SPREADSHEET_ID);
+
+    // Procesar filas: primera fila son encabezados, el resto son datos
+    const encabezados = filas[0].map(encabezado => 
+      String(encabezado).toLowerCase().trim()
+    );
+    
+    const productos = filas.slice(1).map(fila => {
+      const productoCrudo = {};
+      encabezados.forEach((encabezado, indice) => {
+        productoCrudo[encabezado] = fila[indice] !== undefined ? fila[indice] : '';
+      });
+      
+      return normalizarProducto(productoCrudo);
     });
 
-    res.json({ items, ultimaModificacion });
-  } catch (err) {
-    console.error('❌ Error leyendo Google Sheets:', err && err.message ? err.message : err);
-    res.status(500).json({ error: 'Error al leer Google Sheets' });
+    // Filtrar productos vacíos (filas completamente vacías)
+    const productosFiltrados = productos.filter(producto => 
+      producto.producto || producto.precio > 0
+    );
+
+    res.json({ 
+      items: productosFiltrados, 
+      ultimaModificacion 
+    });
+
+  } catch (error) {
+    console.error('❌ Error en /api/catalogo:', error.message);
+    
+    // Mensajes de error más específicos según el tipo de error
+    let mensajeError = 'Error al leer Google Sheets';
+    if (error.message.includes('PERMISSION_DENIED')) {
+      mensajeError = 'Sin permisos para acceder al spreadsheet. Verifica las credenciales.';
+    } else if (error.message.includes('NOT_FOUND')) {
+      mensajeError = 'Spreadsheet no encontrado. Verifica el SPREADSHEET_ID.';
+    }
+    
+    res.status(500).json({ 
+      error: mensajeError,
+      detalle: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
-
-// -------------------- Endpoint opcional /api/info --------------------
-// Devuelve solo la fecha de última modificación: { lastUpdate: "ISOdate" }
-// Útil si el frontend prefiere pedir solo la info.
+/**
+ * Endpoint: /api/info
+ * Devuelve solo la metadata del spreadsheet (fecha de modificación)
+ * Response: { lastUpdate: string }
+ */
 app.get('/api/info', async (req, res) => {
   try {
-    const drive = await getDriveClient();
-    const file = await drive.files.get({
-      fileId: SPREADSHEET_ID,
-      fields: 'modifiedTime'
+    if (!SPREADSHEET_ID) {
+      return res.status(500).json({ 
+        error: 'SPREADSHEET_ID no configurado' 
+      });
+    }
+
+    const ultimaModificacion = await obtenerUltimaModificacion(SPREADSHEET_ID);
+    
+    res.json({ 
+      lastUpdate: ultimaModificacion 
     });
-    res.json({ lastUpdate: file.data.modifiedTime });
-  } catch (err) {
-    console.error('❌ Error obteniendo metadata Drive:', err);
-    res.status(500).json({ error: 'Error obteniendo info' });
+
+  } catch (error) {
+    console.error('❌ Error en /api/info:', error.message);
+    res.status(500).json({ 
+      error: 'Error obteniendo información del spreadsheet' 
+    });
   }
 });
 
-// -------------------- Iniciar servidor --------------------
-const PORT = process.env.PORT || 3000;
+/**
+ * Endpoint de salud/health check
+ * Útil para monitoreo y despliegues
+ */
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    spreadsheetConfigurado: !!SPREADSHEET_ID
+  });
+});
+
+// ===== MANEJO DE RUTAS NO ENCONTRADAS =====
+app.use('*', (req, res) => {
+  res.status(404).json({ 
+    error: 'Ruta no encontrada',
+    rutasDisponibles: ['/api/catalogo', '/api/info', '/api/health']
+  });
+});
+
+// ===== INICIALIZACIÓN DEL SERVIDOR =====
 app.listen(PORT, () => {
+  console.log('🚀 ===== SERVIDOR INICIADO =====');
   console.log(`✅ Backend corriendo en puerto ${PORT}`);
-  console.log(`📊 SPREADSHEET_ID: ${SPREADSHEET_ID ? SPREADSHEET_ID.slice(0,8) + '...' : 'NO CONFIGURADO'}`);
-  console.log(`🔗 GET /api/catalogo`);
-  console.log(`🔗 GET /api/info`);
+  console.log(`📊 Spreadsheet ID: ${SPREADSHEET_ID ? SPREADSHEET_ID.slice(0, 8) + '...' : 'NO CONFIGURADO'}`);
+  console.log(`📝 Rango configurado: ${RANGO_HOJA}`);
+  console.log('🔗 Endpoints disponibles:');
+  console.log('   GET /api/catalogo    - Lista completa de productos');
+  console.log('   GET /api/info        - Información del spreadsheet');
+  console.log('   GET /api/health      - Estado del servidor');
+  console.log('   GET /*               - Archivos estáticos del frontend');
+  console.log('================================');
 });

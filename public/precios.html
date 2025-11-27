@@ -1,10 +1,12 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
+  <!-- Configuración básica del documento -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- NUEVA CSP -->
+  <!-- Política de Seguridad de Contenido (CSP) -->
+  <!-- Permite recursos seguros y controla qué fuentes se pueden cargar -->
   <meta http-equiv="Content-Security-Policy"
     content="
       default-src 'self' https: http: data: blob:;
@@ -15,35 +17,55 @@
     ">
 
   <title>Catálogo - Distribuidora</title>
+  
+  <!-- Hojas de estilo -->
   <link rel="stylesheet" href="precios.css">
 
-  <!-- librerías para generar PDF -->
+  <!-- Librerías externas para generación de PDF -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
+  <!-- Script principal de la aplicación (cargado de forma diferida) -->
   <script src="precios.js" defer></script>
 </head>
 
 <body>
+  <!-- Contenedor principal -->
   <div class="wrap">
+    
+    <!-- Cabecera de la aplicación -->
     <header class="header">
+      
+      <!-- Sección de marca y título -->
       <div class="brand">
         <h1>Distribuidora — Catálogo</h1>
         <p class="subtitle">Lista actualizada desde Google Sheets</p>
       </div>
 
+      <!-- Sección de acciones y controles -->
       <div class="actions">
+        <!-- Muestra la fecha de última actualización -->
         <div id="fechaActualizacion" class="fecha">Última actualización: —</div>
+        
+        <!-- Botones de acción -->
         <div class="btns">
           <button id="btnRefrescar" class="btn">Refrescar</button>
           <button id="btnDescargar" class="btn primary">Descargar PDF</button>
         </div>
       </div>
+      
     </header>
 
+    <!-- Contenido principal -->
     <main>
+      
+      <!-- Contenedor de la tabla (se usa para generar el PDF) -->
       <div id="tablaWrapper" class="tabla-wrapper">
+        
+        <!-- Tabla principal del catálogo -->
         <table id="tablaCatalogo" class="catalogo">
+          
+          <!-- Encabezados de la tabla -->
           <thead>
             <tr>
               <th class="col-prod">Producto</th>
@@ -53,19 +75,26 @@
               <th class="col-precio">Precio x pack</th>
             </tr>
           </thead>
+          
+          <!-- Cuerpo de la tabla (se completa dinámicamente con JavaScript) -->
           <tbody>
-            <!-- se completa vía JS -->
+            <!-- Los productos se cargan aquí mediante JavaScript -->
           </tbody>
+          
         </table>
       </div>
+      
     </main>
 
+    <!-- Pie de página -->
     <footer class="footer">
       <small>© Distribuidora — Lista generada desde Google Sheets</small>
-      <!-- Referencia local (si querés usar tu PDF original) -->
-      <!-- Archivo original subido: /mnt/data/Caja pequeña (1).pdf -->
-      <!-- Si lo querés enlazar web, movelo a public/ y usa: <a href="/Caja_pequena.pdf" target="_blank">PDF original</a> -->
+      <!-- 
+        Referencia para PDF original (comentado por ahora):
+        <a href="/Caja_pequena.pdf" target="_blank">PDF original</a> 
+      -->
     </footer>
+    
   </div>
 </body>
 </html>
