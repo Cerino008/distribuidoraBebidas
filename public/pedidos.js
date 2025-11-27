@@ -42,27 +42,27 @@ function obtenerNumeroRemito() {
  */
 async function cargarCatalogo() {
     try {
-        // Hace una petición a la API del backend
         const res = await fetch('/api/catalogo');
-        catalogo = await res.json(); // Convierte la respuesta a JSON
-        
-        // Limpia el selector de productos
+        const data = await res.json();
+
+        catalogo = data.items || [];
+
         productSelect.innerHTML = '';
-        
-        // Por cada producto en el catálogo, crea una opción en el select
+
         catalogo.forEach(item => {
             const opt = document.createElement('option');
-            opt.value = item.producto;           // Valor interno
-            opt.textContent = `${item.producto} - $${item.precio}`; // Texto visible
-            opt.dataset.precio = item.precio;    // Guarda el precio como atributo data
-            productSelect.appendChild(opt);      // Agrega al selector
+            opt.value = item.producto;
+            opt.textContent = `${item.producto} - $${item.precio}`;
+            opt.dataset.precio = item.precio;
+            productSelect.appendChild(opt);
         });
+
     } catch (err) {
-        // Manejo de errores si falla la carga del catálogo
         console.error('Error cargando catálogo:', err);
         productSelect.innerHTML = '<option disabled>Error cargando catálogo</option>';
     }
 }
+
 
 // Cargar el catálogo cuando se inicia la página
 cargarCatalogo();
