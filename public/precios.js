@@ -161,10 +161,10 @@ async function descargarPDF() {
 
 function normalizarImagen(url) {
   if (!url) return '';
-  // Si es link de Google Drive tipo "/file/d/ID/view?usp=sharing"
-  const match = url.match(/\/d\/([^/]+)\//);
-  if (match) {
-    return `https://drive.google.com/uc?id=${match[1]}`;
-  }
+  const match = url.match(/\/d\/([^/?]+)/);
+  if (match) return `https://drive.google.com/uc?id=${match[1]}`;
   return url;
 }
+
+
+
