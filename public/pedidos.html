@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-    <title>Remito - Distribuidora Malvinas</title>
+    <title>Pedido - Distribuidora Malvinas</title>
     
     <!-- Hojas de estilo -->
     <link rel="stylesheet" href="pedidos.css" />
@@ -28,23 +28,21 @@
             <!-- Información de la empresa -->
             <div class="empresa-info">
                 <h1>Distribuidora Malvinas</h1>
-                <p>CUIT: XX-XXXXXXXX-X</p>
-                <p>Monotributista</p>
+                <p>Pedido de mercadería</p>
                 <p>Domicilio: Pablo Areguati 2178 – Grand Bourg – Buenos Aires</p>
             </div>
             
             <!-- Información del comprobante -->
             <div class="comprobante-tipo">
-                <h2>Remito X</h2>
-                <!-- Número de remito que se actualiza automáticamente -->
-                <p>N°: <span id="remitoNumber">0001</span></p>
+                <h2>Pedido</h2>
+                <!-- Pedido interno (no comprobante fiscal) -->
             </div>
             
         </header>
 
         <!-- ===== SECCIÓN PRINCIPAL DEL FORMULARIO ===== -->
         <section class="card">
-            <h3>Generar Pedido / Remito</h3>
+            <h3>Generar Pedido</h3>
 
             <!-- Formulario principal - onsubmit="return false" evita recarga de página -->
             <form id="orderForm" onsubmit="return false;">
@@ -83,9 +81,9 @@
                     <textarea id="notes" rows="2"></textarea>
                 </label>
 
-                <!-- Sección de previsualización del remito -->
+                <!-- Sección de previsualización del pedido -->
                 <div id="orderPreview">
-                    <strong>Previsualización del Remito</strong>
+                    <strong>Previsualización del Pedido</strong>
                     <!-- Contenido de la previsualización (se genera dinámicamente) -->
                     <div id="previewContent" class="preview"></div>
                 </div>
